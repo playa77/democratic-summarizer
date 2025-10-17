@@ -3,11 +3,35 @@
 import os
 import argparse
 import sys
+import time
 import config
 import pdf_processor
 import text_chunker
 import summarizer
 import output_generator
+
+def get_unique_filename(path: str) -> str:
+    """
+    Checks if a file exists at the given path. If it does, it appends a
+    counter to the filename until a unique filename is found.
+    
+    Example:
+      If "summary.pdf" exists, it will return "summary (1).pdf".
+    """
+    if not os.path.exists(path):
+        return path
+    
+    base_name, extension = os.path.splitext(path)
+    counter = 1
+    new_path = f"{base_name} ({counter}){extension}"
+    
+    while os.path.exists(new_path):
+        counter += 1
+        new_path = f"{base_name} ({counter}){extension}"
+        
+    print(f"Warning: Output file '{os.path.basename(path)}' already exists.")
+    print(f"  -> Saving to '{os.path.basename(new_path)}' instead.")
+    return new_path
 
 def main():
     """The main execution function for the document summarization pipeline."""
@@ -38,7 +62,6 @@ def main():
         print(e)
         sys.exit(1)
     print(f"Input file: {os.path.basename(pdf_path)}")
-    # Add the selected ratio to the initial output for clarity.
     print(f"  -> Summary Ratio: {args.ratio}")
     print("-" * 60)
 
@@ -60,31 +83,57 @@ def main():
 
     # STAGE 3: AI SUMMARIZATION
     print("\n[STAGE 3/4] Generating summary with AI model...")
-    # The user's selected ratio is now passed to the summarizer.
-    # Note: The logic to handle the 'all' case will be built in the next step.
-    # For now, this step assumes a single ratio is processed.
-    individual_summaries = summarizer.summarize_chunks(chunks, ratio=args.ratio)
-    if not individual_summaries:
-        print("Summarization failed to produce results. Cannot continue.")
-        sys.exit(1)
-    final_summary = "\n\n".join(individual_summaries)
-    print("AI summarization complete.")
+    
+    summaries_dict = {}
+    
+    if args.ratio == 'all':
+        ratios_to_process = ['100', '50', '20', '10', '5']
+        print(f"Processing all ratios: {ratios_to_process}")
+        
+        for i, ratio in enumerate(ratios_to_process):
+            print(f"\n--- Generating summary for 1:{ratio} ratio ---")
+            individual_summaries = summarizer.summarize_chunks(chunks, ratio=ratio)
+            
+            if not individual_summaries:
+                summaries_dict[ratio] = "[Error during summarization]"
+            else:
+                summaries_dict[ratio] = "\n\n".join(individual_summaries)
+
+            if i < len(ratios_to_process) - 1:
+                print(f"--- Ratio 1:{ratio} complete. Pausing for {config.DELAY_BETWEEN_RATIOS} seconds before next run. ---")
+                time.sleep(config.DELAY_BETWEEN_RATIOS)
+
+    else:
+        individual_summaries = summarizer.summarize_chunks(chunks, ratio=args.ratio)
+        if not individual_summaries:
+            print("Summarization failed to produce results. Cannot continue.")
+            sys.exit(1)
+        summaries_dict[args.ratio] = "\n\n".join(individual_summaries)
+
+    print("\nAI summarization complete.")
 
     # STAGE 4: OUTPUT GENERATION
     print("\n[STAGE 4/4] Generating final summary PDF...")
     base_name = os.path.basename(pdf_path)
     file_name_without_ext = os.path.splitext(base_name)[0]
-    output_filename = f"{file_name_without_ext}_summary_1_to_{args.ratio}.pdf"
+    
+    if args.ratio == 'all':
+        initial_output_filename = f"{file_name_without_ext}_summary_all_ratios.pdf"
+    else:
+        initial_output_filename = f"{file_name_without_ext}_summary_1_to_{args.ratio}.pdf"
+    
+    # Ensure the output filename is unique to avoid overwriting.
+    final_output_filename = get_unique_filename(initial_output_filename)
     
     output_generator.create_summary_pdf(
         original_filename=base_name,
-        summary_text=final_summary,
-        output_path=output_filename
+        summaries=summaries_dict,
+        output_path=final_output_filename
     )
     
     print("-" * 60)
     print("Pipeline finished successfully!")
-    print(f"Your summary has been saved to: {output_filename}")
+    print(f"Your summary has been saved to: {final_output_filename}")
     print("-" * 60)
 
 if __name__ == "__main__":

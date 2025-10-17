@@ -1,47 +1,48 @@
+# config.py
+
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file.
-# This allows for secure and flexible configuration without modifying the code.
+# Load environment variables from the .env file in the project root.
 load_dotenv()
 
-# --- Core LLM Configuration ---
-
-# Load the API key from the environment. This is mandatory for the app to run.
+# --- OpenRouter API Configuration ---
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Load the model name from .env, providing a powerful, tested model as a fallback.
-# The value in your .env file will always take precedence.
+# --- Language Model Configuration ---
 LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
 
-# Load the model temperature from .env, with a default for consistent output.
 try:
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 except (ValueError, TypeError):
+    print("Warning: Invalid LLM_TEMPERATURE. Using default value of 0.1")
     LLM_TEMPERATURE = 0.1
 
-# Load the max chunk size from .env. The default is set to a higher value
-# based on research into the new model's capabilities. Your .env value will be used.
-try:
-    MAX_CHUNK_SIZE = int(os.getenv("MAX_CHUNK_SIZE", "16000"))
-except (ValueError, TypeError):
-    MAX_CHUNK_SIZE = 16000
+# --- Text Processing Configuration ---
+MAX_CHUNK_SIZE = int(os.getenv("MAX_CHUNK_SIZE", "4000"))
 
-# --- Load External Prompt Template ---
+# --- API Pacing Configuration ---
 try:
-    # The prompt is externalized to keep it separate from application logic.
-    with open('prompt.txt', 'r', encoding='utf-8') as f:
-        PROMPT_TEMPLATE = f.read()
-except FileNotFoundError:
-    # If the prompt is missing, the application cannot function.
-    raise RuntimeError("Fatal Error: The 'prompt.txt' file was not found in the project directory.")
+    DELAY_BETWEEN_CHUNKS = int(os.getenv("DELAY_BETWEEN_CHUNKS", "2"))
+except (ValueError, TypeError):
+    print("Warning: Invalid DELAY_BETWEEN_CHUNKS. Using default value of 2 seconds.")
+    DELAY_BETWEEN_CHUNKS = 2
+
+try:
+    DELAY_BETWEEN_RATIOS = int(os.getenv("DELAY_BETWEEN_RATIOS", "5"))
+except (ValueError, TypeError):
+    print("Warning: Invalid DELAY_BETWEEN_RATIOS. Using default value of 5 seconds.")
+    DELAY_BETWEEN_RATIOS = 5
 
 def validate_config():
-    """Validates that essential configuration variables are set and prints the active configuration."""
+    """Checks that essential configuration (like the API key) is present."""
     if not OPENROUTER_API_KEY:
-        raise ValueError("Config Error: OPENROUTER_API_KEY is not set in the .env file.")
-    
-    print("Configuration loaded successfully from .env (with defaults for missing values):")
+        raise ValueError(
+            "Configuration Error: OPENROUTER_API_KEY is not set.\n"
+            "Please create a .env file and add your key."
+        )
+    print("Configuration loaded successfully.")
     print(f"  -> Using Model: {LLM_MODEL_NAME}")
     print(f"  -> Model Temperature: {LLM_TEMPERATURE}")
-    print(f"  -> Max Chunk Size: {MAX_CHUNK_SIZE} characters")
+    print(f"  -> Delay Between Chunks: {DELAY_BETWEEN_CHUNKS}s")
+    print(f"  -> Delay Between Ratios: {DELAY_BETWEEN_RATIOS}s")

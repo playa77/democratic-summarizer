@@ -5,11 +5,9 @@ from typing import List
 from tqdm import tqdm
 import config
 import sys
+import time
 
-# VERIFIED: Import the correct class 'OpenRouterLLM' from the correct file.
 from langchain_openrouter.openrouter import OpenRouterLLM
-
-# VERIFIED: Use the simpler 'PromptTemplate' because we are using an 'LLM' class.
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -29,16 +27,14 @@ def load_prompt_from_file(ratio: str) -> str:
 
 def summarize_chunks(chunks: List[str], ratio: str) -> List[str]:
     """
-    Summarizes text chunks using a dynamically loaded prompt based on the specified ratio.
+    Summarizes text chunks using a dynamically loaded prompt, with conservative delays.
     """
     if not chunks:
         return []
 
-    # Dynamically load the prompt template from an external file.
     prompt_template_str = load_prompt_from_file(ratio)
     prompt = PromptTemplate.from_template(prompt_template_str)
     
-    # Instantiate the OpenRouterLLM class.
     llm = OpenRouterLLM(
         api_key=config.OPENROUTER_API_KEY,
         model=config.LLM_MODEL_NAME, 
@@ -46,8 +42,6 @@ def summarize_chunks(chunks: List[str], ratio: str) -> List[str]:
     )
     
     output_parser = StrOutputParser()
-    
-    # The chain works correctly with the LLM-compatible components.
     chain = prompt | llm | output_parser
     
     summaries = []
@@ -58,5 +52,8 @@ def summarize_chunks(chunks: List[str], ratio: str) -> List[str]:
         except Exception as e:
             print(f"\nAn error occurred while summarizing a chunk: {e}")
             summaries.append("[Error during summarization]")
+        finally:
+            # Implement the conservative delay between each API call.
+            time.sleep(config.DELAY_BETWEEN_CHUNKS)
             
     return summaries
