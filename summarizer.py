@@ -4,39 +4,41 @@ import os
 from typing import List
 from tqdm import tqdm
 import config
+import sys
 
-# VERIFIED: Import the correct class 'OpenRouterLLM' from the correct file,
-# as confirmed by the inspector script.
+# VERIFIED: Import the correct class 'OpenRouterLLM' from the correct file.
 from langchain_openrouter.openrouter import OpenRouterLLM
 
-# VERIFIED: Use the simpler 'PromptTemplate' because we are using an 'LLM' class,
-# not a 'ChatModel' class.
+# VERIFIED: Use the simpler 'PromptTemplate' because we are using an 'LLM' class.
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-def summarize_chunks(chunks: List[str]) -> List[str]:
-    """Summarizes text chunks using the correct OpenRouterLLM class."""
+def load_prompt_from_file(ratio: str) -> str:
+    """Loads a prompt template from the corresponding file in the 'prompts' directory."""
+    prompt_path = os.path.join("prompts", f"ratio_{ratio}.txt")
+    try:
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Error: Prompt file not found at '{prompt_path}'.")
+        print("Please ensure a prompt file exists for the specified ratio.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading prompt file '{prompt_path}': {e}")
+        sys.exit(1)
+
+def summarize_chunks(chunks: List[str], ratio: str) -> List[str]:
+    """
+    Summarizes text chunks using a dynamically loaded prompt based on the specified ratio.
+    """
     if not chunks:
         return []
 
-    # Use a standard PromptTemplate suitable for an LLM.
-    prompt_template = """
-    Analyze the following text from a legislative or political document. Your task is to provide a concise, neutral, and factual summary.
-    Follow these rules strictly:
-    1. Focus only on the key information, regulations, and stated outcomes.
-    2. Do not add any interpretation, opinion, or external information.
-    3. Present the summary as a clear, factual statement.
-    4. The output must be in plain text, not markdown.
-    5. Summarize in the same language the Source Text uses.
-    Source Text:
-    "{text}"
-    Factual Summary:
-    """
-    prompt = PromptTemplate.from_template(prompt_template)
+    # Dynamically load the prompt template from an external file.
+    prompt_template_str = load_prompt_from_file(ratio)
+    prompt = PromptTemplate.from_template(prompt_template_str)
     
     # Instantiate the OpenRouterLLM class.
-    # We must pass the parameters exactly as they are defined in the class
-    # source code we inspected: 'api_key', 'model', and 'temperature'.
     llm = OpenRouterLLM(
         api_key=config.OPENROUTER_API_KEY,
         model=config.LLM_MODEL_NAME, 
@@ -49,7 +51,7 @@ def summarize_chunks(chunks: List[str]) -> List[str]:
     chain = prompt | llm | output_parser
     
     summaries = []
-    for chunk in tqdm(chunks, desc="Generating Summaries", unit="chunk"):
+    for chunk in tqdm(chunks, desc=f"Generating Summaries (1:{ratio} ratio)", unit="chunk"):
         try:
             summary = chain.invoke({"text": chunk})
             summaries.append(summary)

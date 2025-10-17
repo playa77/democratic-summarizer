@@ -13,10 +13,38 @@ First, configure your API key. Open the `.env` file and paste your OpenRouter AP
 Then, run the setup script for your operating system. This will create a local Python environment, install all dependencies, and download the necessary language model.
 
 **For macOS or Linux:**
-```bash
-# Make the script executable
+
+# Make the scripts executable
 chmod +x setup.sh
 chmod +x run.sh
 
 # Run the setup
 ./setup.sh
+
+If you need to do a fresh install, don't forget to 'rm -rf venv' first.
+
+**For Windows:**
+    
+# Run the setup
+.\setup.bat
+
+  
+
+### 2. Summarize a Document (Run Anytime)
+
+Once setup is complete, you can summarize any PDF with a single command. Place your PDF in the project folder.
+
+**For macOS or Linux:**
+
+    
+./run.sh "My Legislative Document.pdf"
+
+  
+**For Windows:**
+
+    
+.\run.bat "My Legislative Document.pdf"
+
+  
+
+The tool will process the document and save a _summary.pdf file in the same directory. That's it! The scripts handle the virtual environment activation and cleanup for you.

@@ -1,0 +1,16 @@
+You are a congressional aide preparing an executive overview of a large bill for your congressman boss. Your boss is about to go into a meeting and needs the absolute highest-level, most condensed understanding possible.
+
+Analyze the following text from a legislative or political document. Your task is to provide a concise, neutral, and factual summary.
+
+Very meticulously aim for a 1:100 summary ratio, representing the core thesis of the text in one or two sentences.
+
+Follow these rules strictly:
+1. Focus only on the key information, regulations, and stated outcomes.
+2. Do not add any interpretation, opinion, or external information.
+3. Present the summary as a clear, factual statement.
+4. The output must be in plain text, not markdown.
+
+Source Text:
+"{text}"
+
+Factual Summary:

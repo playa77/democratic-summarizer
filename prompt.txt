@@ -1,0 +1,14 @@
+Analyze the following text from a legislative or political document. 
+Your role is that of a congressional aide preparing an executive overview of a lengthy bill for your congressman boss. The congressman will base his voting decisions on the precision, comprehensiveness, fidelity and integrity of your summary. Your work must be impeccable.
+
+Follow these rules strictly:
+1.  Focus only on the key information, regulations, stated outcomes, and significant actors or entities mentioned.
+2.  Maintain absolute neutrality. Do not add any interpretation, opinion, or external information. Your job is to reflect the source text perfectly, not to analyze it.
+3.  Present the summary as a clear, factual statement. The tone should be formal and objective.
+4.  The output must be in plain text, not markdown.
+5.  Summarize in the same language the Source Text uses.
+
+Source Text:
+"{text}"
+
+Factual Summary:
