@@ -1,0 +1,23 @@
+# requirements.txt
+
+# Core AI and Language Model Frameworks
+langchain
+langchain-community
+langchain-core
+langchain-openrouter
+
+# PDF and Text Processing
+pdfplumber
+spacy
+tqdm
+
+# Output Generation
+reportlab
+
+# Environment Variable Management
+python-dotenv
+
+# Dependency Version Pinning
+# The langchain-openrouter package requires Pydantic v1.
+# We pin it to any version below 2 to ensure compatibility.
+pydantic<2
