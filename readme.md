@@ -21,14 +21,8 @@ chmod +x run.sh
 # Run the setup
 ./setup.sh
 
+# Clean up manually
 If you need to do a fresh install, don't forget to 'rm -rf venv' first.
-
-**For Windows:**
-    
-# Run the setup
-.\setup.bat
-
-  
 
 ### 2. Summarize a Document (Run Anytime)
 
@@ -40,11 +34,6 @@ Once setup is complete, you can summarize any PDF with a single command. Place y
 ./run.sh "My Legislative Document.pdf"
 
   
-**For Windows:**
-
-    
-.\run.bat "My Legislative Document.pdf"
-
   
 
 The tool will process the document and save a _summary.pdf file in the same directory. That's it! The scripts handle the virtual environment activation and cleanup for you.
